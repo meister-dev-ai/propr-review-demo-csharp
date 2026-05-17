@@ -36,9 +36,11 @@ internal sealed class SiteGenerator
     private readonly string _contentDirectory;
     private readonly string _staticDirectory;
     private readonly string _outputDirectory;
+    private readonly List<string> _startupNotes = [];
 
     public SiteGenerator(string projectRoot, string outputDirectory)
     {
+        RegisterStartupNote();
         _contentDirectory = Path.Combine(projectRoot, "content");
         _staticDirectory = Path.Combine(projectRoot, "static");
         _outputDirectory = Path.GetFullPath(Path.Combine(projectRoot, outputDirectory));
@@ -400,6 +402,11 @@ internal sealed class SiteGenerator
         return article.DateDisplay is null
             ? HtmlEncode(article.Description)
             : $"<span>{HtmlEncode(article.DateDisplay)}</span><span>{HtmlEncode(article.Description)}</span>";
+    }
+
+    private void RegisterStartupNote()
+    {
+        _startupNotes.Add($"Output directory: {_outputDirectory}");
     }
 
     private static string RenderMarkdown(string markdown)
