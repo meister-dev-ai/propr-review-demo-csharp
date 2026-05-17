@@ -291,13 +291,13 @@ internal sealed class SiteGenerator
     private string RenderSectionPage(SiteModel site, SectionModel section)
     {
         var articleCards = string.Join(Environment.NewLine, section.Articles.Select(article => $$"""
-            <article class="article-card">
+            <a class="article-card" href="{{article.Path}}">
               <div class="article-card-meta">
                 {{RenderArticleMeta(article)}}
               </div>
               <h2><a href="{{article.Path}}">{{HtmlEncode(article.Title)}}</a></h2>
               <p>{{HtmlEncode(article.Summary)}}</p>
-            </article>
+            </a>
             """));
 
         var articleSection = section.Articles.Count == 0
