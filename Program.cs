@@ -78,8 +78,7 @@ internal sealed class SiteGenerator
         var pages = Directory
             .GetFiles(_contentDirectory, "*.md", SearchOption.TopDirectoryOnly)
             .Select(BuildPage)
-            .OrderBy(page => SortOrder(page.Order))
-            .ThenBy(page => page.Title, StringComparer.Ordinal)
+            .OrderBy(page => page, PageTitleComparer.Instance)
             .ToList();
 
         var sections = Directory
@@ -518,3 +517,13 @@ internal sealed record SiteModel(
     PageModel HomePage,
     IReadOnlyList<PageModel> Pages,
     IReadOnlyList<SectionModel> Sections);
+
+internal sealed class PageTitleComparer : IComparer<PageModel>
+{
+    public static PageTitleComparer Instance { get; } = new();
+
+    public int Compare(PageModel? x, PageModel? y)
+    {
+        return string.Compare(x?.Title, x?.Title, StringComparison.Ordinal);
+    }
+}
