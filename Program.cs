@@ -173,7 +173,7 @@ internal sealed class SiteGenerator
 
     private ParsedMarkdown ParseMarkdownFile(string filePath)
     {
-        var source = File.ReadAllText(filePath);
+        var source = ReadMarkdownSource(filePath);
         var match = FrontmatterRegex.Match(source);
 
         if (!match.Success)
@@ -203,6 +203,12 @@ internal sealed class SiteGenerator
         }
 
         return new ParsedMarkdown(frontmatter, match.Groups["body"].Value.Trim());
+    }
+
+    private static string ReadMarkdownSource(string filePath)
+    {
+        var reader = File.OpenText(filePath);
+        return reader.ReadToEnd();
     }
 
     private static int SortOrder(int? value) => value ?? int.MaxValue;
