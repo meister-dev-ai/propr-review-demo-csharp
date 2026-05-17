@@ -275,6 +275,10 @@ internal sealed class SiteGenerator
 
     private string RenderStandardPage(SiteModel site, PageModel page)
     {
+        var latestPosts = page.Slug == "index"
+            ? RenderLatestPostsPanel(site)
+            : string.Empty;
+
         return RenderDocument(
             site,
             page.Title,
@@ -284,6 +288,7 @@ internal sealed class SiteGenerator
             <article class="panel stack-gap">
               {{RenderPanelDescription(page.Description)}}
               <div class="markdown">{{page.Html}}</div>
+              {{latestPosts}}
             </article>
             """);
     }
@@ -393,6 +398,35 @@ internal sealed class SiteGenerator
         return string.IsNullOrWhiteSpace(meta)
             ? string.Empty
             : $"<header class=\"panel-header\"><p>{meta}</p></header>";
+    }
+
+    private static string RenderLatestPostsPanel(SiteModel site)
+    {
+        var latestPosts = site.Sections
+            .SelectMany(section => section.Articles)
+            .Where(article => article.DateSortKey is not null)
+            .OrderBy(article => article.DateSortKey, StringComparer.Ordinal)
+            .ThenBy(article => article.Title, StringComparer.Ordinal)
+            .Take(3)
+            .ToList();
+
+        if (latestPosts.Count == 0)
+        {
+            return string.Empty;
+        }
+
+        var items = string.Join(Environment.NewLine, latestPosts.Select(article => $$"""
+            <li><a href="{{article.Path}}">{{HtmlEncode(article.Title)}}</a></li>
+            """));
+
+        return $$"""
+        <section class="stack-gap" aria-labelledby="latest-posts-heading">
+          <h2 id="latest-posts-heading">Latest posts</h2>
+          <ul>
+            {{items}}
+          </ul>
+        </section>
+        """;
     }
 
     private static string RenderArticleMeta(ArticleModel article)
