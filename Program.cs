@@ -275,6 +275,10 @@ internal sealed class SiteGenerator
 
     private string RenderStandardPage(SiteModel site, PageModel page)
     {
+        var introSnippet = page.Slug == "about"
+            ? RenderHtmlSnippet(page.Description)
+            : string.Empty;
+
         return RenderDocument(
             site,
             page.Title,
@@ -283,6 +287,7 @@ internal sealed class SiteGenerator
             $$"""
             <article class="panel stack-gap">
               {{RenderPanelDescription(page.Description)}}
+              {{introSnippet}}
               <div class="markdown">{{page.Html}}</div>
             </article>
             """);
@@ -400,6 +405,20 @@ internal sealed class SiteGenerator
         return article.DateDisplay is null
             ? HtmlEncode(article.Description)
             : $"<span>{HtmlEncode(article.DateDisplay)}</span><span>{HtmlEncode(article.Description)}</span>";
+    }
+
+    private static string RenderHtmlSnippet(string snippet)
+    {
+        if (string.IsNullOrWhiteSpace(snippet))
+        {
+            return string.Empty;
+        }
+
+        return $$"""
+        <section class="panel stack-gap" aria-label="Page intro snippet">
+          <div class="markdown">{{snippet}}</div>
+        </section>
+        """;
     }
 
     private static string RenderMarkdown(string markdown)
