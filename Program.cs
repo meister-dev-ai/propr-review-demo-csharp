@@ -158,13 +158,15 @@ internal sealed class SiteGenerator
         var slug = Path.GetFileNameWithoutExtension(filePath);
         var markdown = ParseMarkdownFile(filePath);
         var description = markdown.Frontmatter.GetValueOrDefault("description") ?? string.Empty;
+        var summary = markdown.Frontmatter.GetValueOrDefault("summary") ?? description;
 
         return new ArticleModel(
             Slug: slug,
             Path: $"/{sectionSlug}/{slug}/",
             Title: markdown.Frontmatter.GetValueOrDefault("title") ?? TitleFromSlug(slug),
             Description: description,
-            Summary: markdown.Frontmatter.GetValueOrDefault("summary") ?? description,
+            Summary: summary,
+            SummaryHtml: RenderMarkdown(summary),
             DateDisplay: NormalizeDateDisplay(markdown.Frontmatter.GetValueOrDefault("date")),
             DateSortKey: NormalizeDateSortKey(markdown.Frontmatter.GetValueOrDefault("date")),
             Order: ParseOptionalInt(markdown.Frontmatter.GetValueOrDefault("order")),
@@ -296,7 +298,7 @@ internal sealed class SiteGenerator
                 {{RenderArticleMeta(article)}}
               </div>
               <h2><a href="{{article.Path}}">{{HtmlEncode(article.Title)}}</a></h2>
-              <p>{{HtmlEncode(article.Summary)}}</p>
+              <div class="article-summary">{{article.SummaryHtml}}</div>
             </article>
             """));
 
@@ -497,6 +499,7 @@ internal sealed record ArticleModel(
     string Title,
     string Description,
     string Summary,
+    string SummaryHtml,
     string? DateDisplay,
     string? DateSortKey,
     int? Order,
