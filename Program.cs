@@ -327,6 +327,22 @@ internal sealed class SiteGenerator
 
     private string RenderArticlePage(SiteModel site, SectionModel section, ArticleModel article)
     {
+        var relatedArticles = section.Articles
+            .Where(candidate => candidate.Title != article.Title && candidate.DateSortKey != article.DateSortKey)
+            .Take(2)
+            .ToList();
+
+        var relatedPosts = relatedArticles.Count == 0
+            ? string.Empty
+            : $$"""
+            <aside class="stack-gap" aria-labelledby="related-posts-heading">
+              <h2 id="related-posts-heading">Related posts</h2>
+              <ul>
+                {{string.Join(Environment.NewLine, relatedArticles.Select(related => $"<li><a href=\"{related.Path}\">{HtmlEncode(related.Title)}</a></li>"))}}
+              </ul>
+            </aside>
+            """;
+
         return RenderDocument(
             site,
             article.Title,
@@ -337,6 +353,7 @@ internal sealed class SiteGenerator
               <a class="back-link" href="{{section.Path}}">Back to {{HtmlEncode(section.Title)}}</a>
               {{RenderArticleHeader(article)}}
               <div class="markdown">{{article.Html}}</div>
+              {{relatedPosts}}
             </article>
             """);
     }
