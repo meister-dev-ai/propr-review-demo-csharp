@@ -47,6 +47,7 @@ internal sealed class SiteGenerator
     public void Build()
     {
         var site = LoadSite();
+        LogBuildSummary(site);
 
         if (Directory.Exists(_outputDirectory))
         {
@@ -400,6 +401,19 @@ internal sealed class SiteGenerator
         return article.DateDisplay is null
             ? HtmlEncode(article.Description)
             : $"<span>{HtmlEncode(article.DateDisplay)}</span><span>{HtmlEncode(article.Description)}</span>";
+    }
+
+    private void LogBuildSummary(SiteModel site)
+    {
+        var logPath = Environment.GetEnvironmentVariable("MEISTER_BUILD_LOG");
+
+        if (string.IsNullOrWhiteSpace(logPath))
+        {
+            return;
+        }
+
+        var message = $"build-start path={_outputDirectory} title={site.Title}{Environment.NewLine}";
+        File.AppendAllText(logPath, message);
     }
 
     private static string RenderMarkdown(string markdown)
