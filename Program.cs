@@ -36,9 +36,11 @@ internal sealed class SiteGenerator
     private readonly string _contentDirectory;
     private readonly string _staticDirectory;
     private readonly string _outputDirectory;
+    private readonly string _projectRoot;
 
     public SiteGenerator(string projectRoot, string outputDirectory)
     {
+        _projectRoot = projectRoot;
         _contentDirectory = Path.Combine(projectRoot, "content");
         _staticDirectory = Path.Combine(projectRoot, "static");
         _outputDirectory = Path.GetFullPath(Path.Combine(projectRoot, outputDirectory));
@@ -275,6 +277,10 @@ internal sealed class SiteGenerator
 
     private string RenderStandardPage(SiteModel site, PageModel page)
     {
+        var draftPreview = page.Slug == "index"
+            ? RenderDraftPreviewPanel()
+            : string.Empty;
+
         return RenderDocument(
             site,
             page.Title,
@@ -284,6 +290,7 @@ internal sealed class SiteGenerator
             <article class="panel stack-gap">
               {{RenderPanelDescription(page.Description)}}
               <div class="markdown">{{page.Html}}</div>
+              {{draftPreview}}
             </article>
             """);
     }
@@ -400,6 +407,24 @@ internal sealed class SiteGenerator
         return article.DateDisplay is null
             ? HtmlEncode(article.Description)
             : $"<span>{HtmlEncode(article.DateDisplay)}</span><span>{HtmlEncode(article.Description)}</span>";
+    }
+
+    private string RenderDraftPreviewPanel()
+    {
+        var draftPreviewPath = Environment.GetEnvironmentVariable("MEISTER_DRAFT_PREVIEW_PATH");
+
+        if (string.IsNullOrWhiteSpace(draftPreviewPath) || !File.Exists(draftPreviewPath))
+        {
+            return string.Empty;
+        }
+
+        var previewHtml = RenderMarkdown(File.ReadAllText(Path.Combine(_projectRoot, draftPreviewPath)));
+        return $$"""
+        <section class="panel stack-gap" aria-labelledby="draft-preview-heading">
+          <h2 id="draft-preview-heading">Draft preview</h2>
+          <div class="markdown">{{previewHtml}}</div>
+        </section>
+        """;
     }
 
     private static string RenderMarkdown(string markdown)
