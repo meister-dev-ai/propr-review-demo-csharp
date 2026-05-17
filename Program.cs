@@ -290,7 +290,8 @@ internal sealed class SiteGenerator
 
     private string RenderSectionPage(SiteModel site, SectionModel section)
     {
-        var articleCards = string.Join(Environment.NewLine, section.Articles.Select(article => $$"""
+        var filteredArticles = FilterArticles(section);
+        var articleCards = string.Join(Environment.NewLine, filteredArticles.Select(article => $$"""
             <article class="article-card">
               <div class="article-card-meta">
                 {{RenderArticleMeta(article)}}
@@ -300,7 +301,7 @@ internal sealed class SiteGenerator
             </article>
             """));
 
-        var articleSection = section.Articles.Count == 0
+        var articleSection = filteredArticles.Count == 0
             ? ""
             : $$"""
             <section class="stack-gap" aria-labelledby="articles-heading">
@@ -400,6 +401,19 @@ internal sealed class SiteGenerator
         return article.DateDisplay is null
             ? HtmlEncode(article.Description)
             : $"<span>{HtmlEncode(article.DateDisplay)}</span><span>{HtmlEncode(article.Description)}</span>";
+    }
+
+    private static IReadOnlyList<ArticleModel> FilterArticles(SectionModel section)
+    {
+        var articleFilter = Environment.GetEnvironmentVariable("MEISTER_ARTICLE_FILTER");
+
+        if (string.IsNullOrWhiteSpace(articleFilter))
+        {
+            return section.Articles;
+        }
+
+        var regex = new Regex(articleFilter, RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        return section.Articles.Where(article => regex.IsMatch(article.Title)).ToList();
     }
 
     private static string RenderMarkdown(string markdown)
