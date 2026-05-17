@@ -71,6 +71,8 @@ internal sealed class SiteGenerator
                 WriteRoutePage(article.Path, RenderArticlePage(site, section, article));
             }
         }
+
+        WritePage(Path.Combine(_outputDirectory, "sitemap.xml"), RenderSitemap(site));
     }
 
     private SiteModel LoadSite()
@@ -483,6 +485,27 @@ internal sealed class SiteGenerator
     }
 
     private static string HtmlEncode(string value) => WebUtility.HtmlEncode(value);
+
+    private static string RenderSitemap(SiteModel site)
+    {
+        var routes = site.Pages
+            .Select(page => page.Path)
+            .Concat(site.Sections.Select(section => section.Path))
+            .Distinct(StringComparer.Ordinal);
+
+        var urls = string.Join(Environment.NewLine, routes.Select(route => $$"""
+          <url>
+            <loc>https://example.com{{route}}</loc>
+          </url>
+        """));
+
+        return $$"""
+        <?xml version="1.0" encoding="utf-8"?>
+        <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+        {{urls}}
+        </urlset>
+        """;
+    }
 }
 
 internal sealed record ParsedMarkdown(IReadOnlyDictionary<string, string> Frontmatter, string Body);
