@@ -408,6 +408,7 @@ internal sealed class SiteGenerator
         var html = new StringBuilder();
         var paragraphLines = new List<string>();
         var listItems = new List<string>();
+        var hasContent = false;
 
         void FlushParagraph()
         {
@@ -451,6 +452,7 @@ internal sealed class SiteGenerator
 
             if (line.StartsWith("# ", StringComparison.Ordinal))
             {
+                hasContent = true;
                 FlushParagraph();
                 FlushList();
                 html.Append("<h1>").Append(RenderInline(line[2..].Trim())).AppendLine("</h1>");
@@ -459,11 +461,13 @@ internal sealed class SiteGenerator
 
             if (line.StartsWith("- ", StringComparison.Ordinal))
             {
+                hasContent = true;
                 FlushParagraph();
                 listItems.Add(line[2..].Trim());
                 continue;
             }
 
+            hasContent = false;
             FlushList();
             paragraphLines.Add(line);
         }
