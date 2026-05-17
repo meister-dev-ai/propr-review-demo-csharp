@@ -233,9 +233,16 @@ internal sealed class SiteGenerator
             return null;
         }
 
-        return DateOnly.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed)
-            ? parsed.ToString("MMMM d, yyyy", CultureInfo.InvariantCulture)
-            : value;
+        try
+        {
+            return DateOnly.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed)
+                ? parsed.ToString("MMMM d, yyyy", CultureInfo.InvariantCulture)
+                : value;
+        }
+        catch (FormatException)
+        {
+            return null;
+        }
     }
 
     private static string TitleFromSlug(string slug)
