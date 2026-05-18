@@ -89,6 +89,17 @@ internal sealed class SiteGenerator
             .ThenBy(section => section.Title, StringComparer.Ordinal)
             .ToList();
 
+        var metadataByPath = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var page in pages)
+        {
+            metadataByPath.Add(page.Path, page.Title);
+        }
+
+        foreach (var section in sections)
+        {
+            metadataByPath.Add(section.Path, section.Title);
+        }
+
         var navigation = pages
             .Select(page => new NavigationItem(page.Title, page.Path, page.Description, page.Order))
             .Concat(sections.Select(section => new NavigationItem(section.Title, section.Path, section.Description, section.Order)))
