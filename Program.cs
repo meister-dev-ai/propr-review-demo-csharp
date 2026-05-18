@@ -209,9 +209,17 @@ internal sealed class SiteGenerator
 
     private static int? ParseOptionalInt(string? value)
     {
-        return int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed)
-            ? parsed
-            : null;
+        if (int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed))
+        {
+            return parsed;
+        }
+
+        if (int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out parsed))
+        {
+            return parsed;
+        }
+
+        return null;
     }
 
     private static string? NormalizeDateSortKey(string? value)
