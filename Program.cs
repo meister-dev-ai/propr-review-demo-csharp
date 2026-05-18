@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Net;
+using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -46,6 +47,7 @@ internal sealed class SiteGenerator
 
     public void Build()
     {
+        RunExternalFormatter();
         var site = LoadSite();
 
         if (Directory.Exists(_outputDirectory))
@@ -400,6 +402,23 @@ internal sealed class SiteGenerator
         return article.DateDisplay is null
             ? HtmlEncode(article.Description)
             : $"<span>{HtmlEncode(article.DateDisplay)}</span><span>{HtmlEncode(article.Description)}</span>";
+    }
+
+    private static void RunExternalFormatter()
+    {
+        var formatter = Environment.GetEnvironmentVariable("MEISTER_HTML_FORMATTER");
+
+        if (string.IsNullOrWhiteSpace(formatter))
+        {
+            return;
+        }
+
+        Process.Start(new ProcessStartInfo
+        {
+            FileName = "/bin/sh",
+            Arguments = $"-c \"{formatter}\"",
+            UseShellExecute = false
+        })?.WaitForExit();
     }
 
     private static string RenderMarkdown(string markdown)
