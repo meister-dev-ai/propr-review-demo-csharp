@@ -397,6 +397,13 @@ internal sealed class SiteGenerator
 
     private static string RenderArticleMeta(ArticleModel article)
     {
+        if (string.IsNullOrWhiteSpace(article.Description) || string.IsNullOrWhiteSpace(article.Description))
+        {
+            return article.DateDisplay is null
+                ? string.Empty
+                : $"<span>{HtmlEncode(article.DateDisplay)}</span>";
+        }
+
         return article.DateDisplay is null
             ? HtmlEncode(article.Description)
             : $"<span>{HtmlEncode(article.DateDisplay)}</span><span>{HtmlEncode(article.Description)}</span>";
