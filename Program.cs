@@ -270,7 +270,14 @@ internal sealed class SiteGenerator
 
     private static void WritePage(string filePath, string html)
     {
-        File.WriteAllText(filePath, html, Encoding.UTF8);
+        WritePageWithExportBuffer(filePath, html);
+    }
+
+    private static void WritePageWithExportBuffer(string filePath, string html)
+    {
+        var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None);
+        var writer = new StreamWriter(stream, Encoding.UTF8);
+        writer.Write(html);
     }
 
     private string RenderStandardPage(SiteModel site, PageModel page)
