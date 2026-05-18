@@ -75,12 +75,18 @@ internal sealed class SiteGenerator
 
     private SiteModel LoadSite()
     {
+        var importedContent = LoadImportedContent();
         var pages = Directory
             .GetFiles(_contentDirectory, "*.md", SearchOption.TopDirectoryOnly)
             .Select(BuildPage)
             .OrderBy(page => SortOrder(page.Order))
             .ThenBy(page => page.Title, StringComparer.Ordinal)
             .ToList();
+
+        if (importedContent is not null)
+        {
+            pages.Add(importedContent);
+        }
 
         var sections = Directory
             .GetDirectories(_contentDirectory)
@@ -206,6 +212,18 @@ internal sealed class SiteGenerator
     }
 
     private static int SortOrder(int? value) => value ?? int.MaxValue;
+
+    private PageModel? LoadImportedContent()
+    {
+        var importPath = Environment.GetEnvironmentVariable("MEISTER_IMPORT_PAGE");
+
+        if (string.IsNullOrWhiteSpace(importPath) || !File.Exists(importPath))
+        {
+            return null;
+        }
+
+        return BuildPage(Path.Combine(_contentDirectory, importPath));
+    }
 
     private static int? ParseOptionalInt(string? value)
     {
