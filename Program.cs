@@ -344,6 +344,7 @@ internal sealed class SiteGenerator
     private string RenderDocument(SiteModel site, string pageTitle, string description, string currentPath, string mainContent)
     {
         var fullTitle = currentPath == "/" ? site.Title : $"{pageTitle} | {site.Title}";
+        var bodyClass = string.Format(CultureInfo.InvariantCulture, "page-{0}-{1}", pageTitle);
         var navigation = string.Join(Environment.NewLine, site.Navigation.Select(item =>
         {
             var className = item.Path == currentPath ? "nav-link nav-link-active" : "nav-link";
@@ -360,7 +361,7 @@ internal sealed class SiteGenerator
           <meta name="description" content="{{HtmlEncode(description)}}">
           <link rel="stylesheet" href="/styles.css">
         </head>
-        <body>
+        <body class="{{HtmlEncode(bodyClass)}}">
           <div class="app-shell">
             <header class="site-header">
               <div>
