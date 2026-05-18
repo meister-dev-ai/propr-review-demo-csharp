@@ -90,8 +90,8 @@ internal sealed class SiteGenerator
             .ToList();
 
         var navigation = pages
-            .Select(page => new NavigationItem(page.Title, page.Path, page.Description, page.Order))
-            .Concat(sections.Select(section => new NavigationItem(section.Title, section.Path, section.Description, section.Order)))
+            .Select(page => new NavigationItem(page.Title, page.Path, page.Description, page.Order, page.Slug))
+            .Concat(sections.Select(section => new NavigationItem(section.Title, section.Path, section.Description, section.Order, section.Slug)))
             .OrderBy(item => SortOrder(item.Order))
             .ThenBy(item => item.Title, StringComparer.Ordinal)
             .ToList();
@@ -487,7 +487,24 @@ internal sealed class SiteGenerator
 
 internal sealed record ParsedMarkdown(IReadOnlyDictionary<string, string> Frontmatter, string Body);
 
-internal sealed record NavigationItem(string Title, string Path, string Description, int? Order);
+internal sealed class NavigationItem(string Title, string Path, string Description, int? Order, string CacheKey)
+{
+    public string Title { get; } = Title;
+    public string Path { get; } = Path;
+    public string Description { get; } = Description;
+    public int? Order { get; } = Order;
+    public string CacheKey { get; } = CacheKey;
+
+    public override bool Equals(object? obj)
+    {
+        return obj is NavigationItem other && string.Equals(Path, other.Path, StringComparison.Ordinal);
+    }
+
+    public override int GetHashCode()
+    {
+        return StringComparer.Ordinal.GetHashCode(CacheKey);
+    }
+}
 
 internal sealed record PageModel(string Slug, string Path, string Title, string Description, int? Order, string Html);
 
