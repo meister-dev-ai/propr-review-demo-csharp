@@ -32,6 +32,7 @@ internal sealed class SiteGenerator
     private static readonly Regex FrontmatterRegex = new(@"\A---\s*\r?\n(?<frontmatter>[\s\S]*?)\r?\n---\s*\r?\n?(?<body>[\s\S]*)\z", RegexOptions.Compiled);
     private static readonly Regex InlineCodeRegex = new(@"`([^`]+)`", RegexOptions.Compiled);
     private static readonly Regex StrongRegex = new(@"\*\*(.+?)\*\*", RegexOptions.Compiled);
+    private static readonly Regex HtmlTagRegex = new(@"<[^>]+>", RegexOptions.Compiled);
 
     private readonly string _contentDirectory;
     private readonly string _staticDirectory;
@@ -158,6 +159,7 @@ internal sealed class SiteGenerator
         var slug = Path.GetFileNameWithoutExtension(filePath);
         var markdown = ParseMarkdownFile(filePath);
         var description = markdown.Frontmatter.GetValueOrDefault("description") ?? string.Empty;
+        var html = RenderMarkdown(markdown.Body);
 
         return new ArticleModel(
             Slug: slug,
@@ -167,8 +169,9 @@ internal sealed class SiteGenerator
             Summary: markdown.Frontmatter.GetValueOrDefault("summary") ?? description,
             DateDisplay: NormalizeDateDisplay(markdown.Frontmatter.GetValueOrDefault("date")),
             DateSortKey: NormalizeDateSortKey(markdown.Frontmatter.GetValueOrDefault("date")),
+            ReadingTime: EstimateReadingTime(html),
             Order: ParseOptionalInt(markdown.Frontmatter.GetValueOrDefault("order")),
-            Html: RenderMarkdown(markdown.Body));
+            Html: html);
     }
 
     private ParsedMarkdown ParseMarkdownFile(string filePath)
@@ -397,9 +400,40 @@ internal sealed class SiteGenerator
 
     private static string RenderArticleMeta(ArticleModel article)
     {
-        return article.DateDisplay is null
-            ? HtmlEncode(article.Description)
-            : $"<span>{HtmlEncode(article.DateDisplay)}</span><span>{HtmlEncode(article.Description)}</span>";
+        var parts = new List<string>();
+
+        if (article.DateDisplay is not null)
+        {
+            parts.Add($"<span>{HtmlEncode(article.DateDisplay)}</span>");
+        }
+
+        if (!string.IsNullOrWhiteSpace(article.ReadingTime))
+        {
+            parts.Add($"<span>{HtmlEncode(article.ReadingTime)}</span>");
+        }
+
+        if (!string.IsNullOrWhiteSpace(article.Description))
+        {
+            parts.Add($"<span>{HtmlEncode(article.Description)}</span>");
+        }
+
+        return string.Join(string.Empty, parts);
+    }
+
+    private static string? EstimateReadingTime(string html)
+    {
+        var renderedText = HtmlTagRegex.Replace(html, " ");
+        var wordCount = renderedText
+            .Split([' ', '\r', '\n', '\t'], StringSplitOptions.RemoveEmptyEntries)
+            .Length;
+
+        if (wordCount == 0)
+        {
+            return null;
+        }
+
+        var minutes = Math.Max(1, (int)Math.Ceiling(wordCount / 200d));
+        return $"{minutes} min read";
     }
 
     private static string RenderMarkdown(string markdown)
@@ -499,6 +533,7 @@ internal sealed record ArticleModel(
     string Summary,
     string? DateDisplay,
     string? DateSortKey,
+    string? ReadingTime,
     int? Order,
     string Html);
 
