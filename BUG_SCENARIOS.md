@@ -28,3 +28,4 @@ These feature branches are intentionally defective review targets built from a c
 - `feature/bug_24`: highlight matching terms but inject the raw search term into `<mark>` tags after encoding
 - `feature/bug_25`: load an optional imported page but validate one path and then rebuild a different rooted path
 - `feature/bug_26`: retry order parsing but repeat the same parse twice and add no real fallback
+- `feature/semantic_bug_2`: document that user-facing sections must reuse the shared section/article pipeline but add showcase through a bespoke parallel model

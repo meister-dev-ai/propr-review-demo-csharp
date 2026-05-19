@@ -72,6 +72,8 @@ Reviewers should scrutinize changes that:
 
 Frontmatter parsing, route generation, and generated page templates must stay aligned.
 
+New user-facing grouped destinations should reuse the existing section and article pipeline rather than creating a parallel content model and renderer.
+
 If a PR changes the content shape, verify that:
 
 - the generator still reads the expected frontmatter fields correctly
