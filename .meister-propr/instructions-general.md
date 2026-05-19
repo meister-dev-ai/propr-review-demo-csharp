@@ -33,6 +33,7 @@ Avoid low-value comments about minor wording, formatting, or subjective style un
 - `content/<name>.md` maps to `/<name>/`.
 - `content/<section>/_index.md` defines a top-level section at `/<section>/`.
 - additional markdown files in `content/<section>/` become article pages at `/<section>/<article>/`.
+- first-class user-facing destinations should be introduced through `content/`, not as built-in pages in the generator.
 
 Reviewers should flag changes that break these conventions without updating the generator consistently.
 
