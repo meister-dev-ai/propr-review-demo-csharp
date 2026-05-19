@@ -47,6 +47,7 @@ internal sealed class SiteGenerator
     public void Build()
     {
         var site = LoadSite();
+        var showcase = BuildShowcase();
 
         if (Directory.Exists(_outputDirectory))
         {
@@ -70,6 +71,13 @@ internal sealed class SiteGenerator
             {
                 WriteRoutePage(article.Path, RenderArticlePage(site, section, article));
             }
+        }
+
+        WriteRoutePage(showcase.Path, RenderShowcasePage(site, showcase));
+
+        foreach (var spotlight in showcase.Spotlights)
+        {
+            WriteRoutePage(spotlight.Path, RenderShowcaseSpotlightPage(site, showcase, spotlight));
         }
     }
 
@@ -121,6 +129,33 @@ internal sealed class SiteGenerator
             Description: markdown.Frontmatter.GetValueOrDefault("description") ?? string.Empty,
             Order: ParseOptionalInt(markdown.Frontmatter.GetValueOrDefault("order")),
             Html: RenderMarkdown(markdown.Body));
+    }
+
+    private static ShowcaseModel BuildShowcase()
+    {
+        return new ShowcaseModel(
+            Path: "/showcase/",
+            Title: "Showcase",
+            Description: "Selected launch stories and proof points.",
+            Html: RenderMarkdown("""
+                # Showcase
+
+                A curated set of launch-ready highlights for the team.
+                """),
+            Spotlights:
+            [
+                new ShowcaseSpotlight(
+                    Title: "Migration wins",
+                    Path: "/showcase/migration-wins/",
+                    Summary: "A concise summary of the strongest migration outcomes.",
+                    Html: RenderMarkdown("""
+                        # Migration wins
+
+                        - Faster onboarding for reviewers.
+                        - Fewer manual publishing steps.
+                        - Better consistency across launch copy.
+                        """))
+            ]);
     }
 
     private SectionModel BuildSection(string directoryPath)
@@ -341,6 +376,50 @@ internal sealed class SiteGenerator
             """);
     }
 
+    private string RenderShowcasePage(SiteModel site, ShowcaseModel showcase)
+    {
+        var spotlightCards = string.Join(Environment.NewLine, showcase.Spotlights.Select(spotlight => $$"""
+            <article class="article-card">
+              <h2><a href="{{spotlight.Path}}">{{HtmlEncode(spotlight.Title)}}</a></h2>
+              <p>{{HtmlEncode(spotlight.Summary)}}</p>
+            </article>
+            """));
+
+        return RenderDocument(
+            site,
+            showcase.Title,
+            showcase.Description,
+            showcase.Path,
+            $$"""
+            <article class="panel stack-gap">
+              {{RenderPanelDescription(showcase.Description)}}
+              <div class="markdown">{{showcase.Html}}</div>
+              <section class="stack-gap" aria-labelledby="showcase-heading">
+                <h2 id="showcase-heading">Spotlights</h2>
+                <div class="article-list">
+                  {{spotlightCards}}
+                </div>
+              </section>
+            </article>
+            """);
+    }
+
+    private string RenderShowcaseSpotlightPage(SiteModel site, ShowcaseModel showcase, ShowcaseSpotlight spotlight)
+    {
+        return RenderDocument(
+            site,
+            spotlight.Title,
+            spotlight.Summary,
+            spotlight.Path,
+            $$"""
+            <article class="panel stack-gap">
+              <a class="back-link" href="{{showcase.Path}}">Back to {{HtmlEncode(showcase.Title)}}</a>
+              <header class="panel-header"><p>{{HtmlEncode(spotlight.Summary)}}</p></header>
+              <div class="markdown">{{spotlight.Html}}</div>
+            </article>
+            """);
+    }
+
     private string RenderDocument(SiteModel site, string pageTitle, string description, string currentPath, string mainContent)
     {
         var fullTitle = currentPath == "/" ? site.Title : $"{pageTitle} | {site.Title}";
@@ -510,6 +589,10 @@ internal sealed record SectionModel(
     int? Order,
     string Html,
     IReadOnlyList<ArticleModel> Articles);
+
+internal sealed record ShowcaseModel(string Path, string Title, string Description, string Html, IReadOnlyList<ShowcaseSpotlight> Spotlights);
+
+internal sealed record ShowcaseSpotlight(string Title, string Path, string Summary, string Html);
 
 internal sealed record SiteModel(
     string Title,
