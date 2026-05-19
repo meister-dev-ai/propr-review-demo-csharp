@@ -47,6 +47,7 @@ internal sealed class SiteGenerator
     public void Build()
     {
         var site = LoadSite();
+        var statusPage = BuildStatusPage();
 
         if (Directory.Exists(_outputDirectory))
         {
@@ -61,6 +62,8 @@ internal sealed class SiteGenerator
         {
             WriteRoutePage(page.Path, RenderStandardPage(site, page));
         }
+
+        WriteRoutePage(statusPage.Path, RenderStandardPage(site, statusPage));
 
         foreach (var section in site.Sections)
         {
@@ -89,9 +92,15 @@ internal sealed class SiteGenerator
             .ThenBy(section => section.Title, StringComparer.Ordinal)
             .ToList();
 
+        if (File.Exists(Path.Combine(_contentDirectory, "status.md")))
+        {
+            sections.Insert(0, BuildStatusSection());
+        }
+
         var navigation = pages
             .Select(page => new NavigationItem(page.Title, page.Path, page.Description, page.Order))
             .Concat(sections.Select(section => new NavigationItem(section.Title, section.Path, section.Description, section.Order)))
+            .Concat([new NavigationItem("Status", "/status/", "Current publishing status and launch notes.", 15)])
             .OrderBy(item => SortOrder(item.Order))
             .ThenBy(item => item.Title, StringComparer.Ordinal)
             .ToList();
@@ -106,6 +115,41 @@ internal sealed class SiteGenerator
             HomePage: homePage,
             Pages: pages,
             Sections: sections);
+    }
+
+    private static PageModel BuildStatusPage()
+    {
+        return new PageModel(
+            Slug: "status",
+            Path: "/status/",
+            Title: "Status",
+            Description: "Current publishing status and launch notes.",
+            Order: 15,
+            Html: RenderMarkdown("""
+                # Status
+
+                This page tracks launch readiness outside the regular content conventions.
+
+                - Publishing is on schedule.
+                - Final review is pending one editorial pass.
+                - Launch comms are ready to send.
+                """));
+    }
+
+    private static SectionModel BuildStatusSection()
+    {
+        return new SectionModel(
+            Slug: "status",
+            Path: "/status-updates/",
+            Title: "Status Updates",
+            Description: "Manually discovered updates for the status area.",
+            Order: 16,
+            Html: RenderMarkdown("""
+                # Status updates
+
+                This section is injected when a special status source file exists.
+                """),
+            Articles: []);
     }
 
     private PageModel BuildPage(string filePath)
