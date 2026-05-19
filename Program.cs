@@ -47,6 +47,7 @@ internal sealed class SiteGenerator
     public void Build()
     {
         var site = LoadSite();
+        var handbookPages = BuildHandbookPages();
 
         if (Directory.Exists(_outputDirectory))
         {
@@ -60,6 +61,11 @@ internal sealed class SiteGenerator
         foreach (var page in site.Pages.Where(page => page.Slug != "index"))
         {
             WriteRoutePage(page.Path, RenderStandardPage(site, page));
+        }
+
+        foreach (var handbookPage in handbookPages)
+        {
+            WriteRoutePage(handbookPage.Path, RenderStandardPage(site, handbookPage));
         }
 
         foreach (var section in site.Sections)
@@ -106,6 +112,28 @@ internal sealed class SiteGenerator
             HomePage: homePage,
             Pages: pages,
             Sections: sections);
+    }
+
+    private static IReadOnlyList<PageModel> BuildHandbookPages()
+    {
+        return
+        [
+            new PageModel(
+                Slug: "handbook",
+                Path: "/handbook/",
+                Title: "Handbook",
+                Description: "Operating notes for the editorial team.",
+                Order: 35,
+                Html: RenderMarkdown("""
+                    # Handbook
+
+                    The handbook centralizes editorial operating notes for launch week.
+
+                    - Publish updates after content review.
+                    - Keep launch copy aligned with the home page narrative.
+                    - Capture follow-up tasks in the planning board.
+                    """))
+        ];
     }
 
     private PageModel BuildPage(string filePath)
