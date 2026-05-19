@@ -53,6 +53,7 @@ The generated site uses folder-based static routes.
 - page, section, and article output should exist as `index.html` files under their route directories
 - links should consistently use trailing slashes except for `/`
 - the build should also copy `static/styles.css` to `dist/styles.css`
+- navigation and route discovery should continue to be convention-derived from `content/`, not manually injected per feature
 
 Be alert for regressions where route output, navigation highlighting, or internal links stop matching the generated paths.
 
