@@ -290,6 +290,7 @@ internal sealed class SiteGenerator
 
     private string RenderSectionPage(SiteModel site, SectionModel section)
     {
+        var articleCountLabel = RenderArticleCountLabel(section);
         var articleCards = string.Join(Environment.NewLine, section.Articles.Select(article => $$"""
             <article class="article-card">
               <div class="article-card-meta">
@@ -319,6 +320,7 @@ internal sealed class SiteGenerator
             $$"""
             <article class="panel stack-gap">
               {{RenderPanelDescription(section.Description)}}
+              <p class="section-count">{{articleCountLabel}}</p>
               <div class="markdown">{{section.Html}}</div>
               {{articleSection}}
             </article>
@@ -400,6 +402,11 @@ internal sealed class SiteGenerator
         return article.DateDisplay is null
             ? HtmlEncode(article.Description)
             : $"<span>{HtmlEncode(article.DateDisplay)}</span><span>{HtmlEncode(article.Description)}</span>";
+    }
+
+    private static string RenderArticleCountLabel(SectionModel section)
+    {
+        return $"{section.Articles[0].Title} and {section.Articles.Count} articles";
     }
 
     private static string RenderMarkdown(string markdown)
