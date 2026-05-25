@@ -477,12 +477,25 @@ internal sealed class SiteGenerator
     private static string RenderInline(string text)
     {
         var encoded = HtmlEncode(text);
+        encoded = HighlightSearchTerms(encoded);
         encoded = StrongRegex.Replace(encoded, "<strong>$1</strong>");
         encoded = InlineCodeRegex.Replace(encoded, "<code>$1</code>");
         return encoded;
     }
 
     private static string HtmlEncode(string value) => WebUtility.HtmlEncode(value);
+
+    private static string HighlightSearchTerms(string text)
+    {
+        var highlight = Environment.GetEnvironmentVariable("MEISTER_HIGHLIGHT_TERM");
+
+        if (string.IsNullOrWhiteSpace(highlight))
+        {
+            return text;
+        }
+
+        return text.Replace(highlight, $"<mark>{highlight}</mark>", StringComparison.OrdinalIgnoreCase);
+    }
 }
 
 internal sealed record ParsedMarkdown(IReadOnlyDictionary<string, string> Frontmatter, string Body);
