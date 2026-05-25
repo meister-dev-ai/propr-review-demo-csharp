@@ -327,6 +327,8 @@ internal sealed class SiteGenerator
 
     private string RenderArticlePage(SiteModel site, SectionModel section, ArticleModel article)
     {
+        var canonicalUrl = BuildCanonicalUrl(article.DateSortKey);
+
         return RenderDocument(
             site,
             article.Title,
@@ -335,6 +337,7 @@ internal sealed class SiteGenerator
             $$"""
             <article class="panel stack-gap">
               <a class="back-link" href="{{section.Path}}">Back to {{HtmlEncode(section.Title)}}</a>
+              <p class="article-canonical">{{HtmlEncode(canonicalUrl)}}</p>
               {{RenderArticleHeader(article)}}
               <div class="markdown">{{article.Html}}</div>
             </article>
@@ -400,6 +403,11 @@ internal sealed class SiteGenerator
         return article.DateDisplay is null
             ? HtmlEncode(article.Description)
             : $"<span>{HtmlEncode(article.DateDisplay)}</span><span>{HtmlEncode(article.Description)}</span>";
+    }
+
+    private static string BuildCanonicalUrl(string? dateSortKey)
+    {
+        return $"/archive/{dateSortKey!.Replace('-', '/')}/";
     }
 
     private static string RenderMarkdown(string markdown)
